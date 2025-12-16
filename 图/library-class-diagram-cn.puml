@@ -1,0 +1,365 @@
+@startuml 初稿图书馆管理系统类图（中文版）
+
+' 用户相关类
+abstract class 用户 {
+  - 用户ID: String
+  - 用户名: String
+  - 密码: String
+  - 姓名: String
+  - 邮箱: String
+  - 电话: String
+  - 注册日期: Date
+  - 最后登录时间: Date
+  + 登录(): boolean
+  + 登出(): void
+  + 更新个人信息(): void
+  + 修改密码(): boolean
+}
+
+class 读者 {
+  - 读者ID: String
+  - 借阅上限: int
+  - 已借数量: int
+  - 会员等级: String
+  - 信用分数: int
+  - 罚款总额: double
+  + 借阅出版物(): boolean
+  + 归还出版物(): void
+  + 查询出版物信息(): List<出版物>
+  + 查看借阅历史(): List<借阅记录>
+  + 检查借阅资格(): boolean
+  + 预约出版物(): boolean
+  + 取消预约(): void
+  + 支付罚款(): boolean
+  + 评价出版物(): void
+  + 查看通知(): List<通知>
+}
+
+class 管理员 {
+  - 管理员ID: String
+  - 角色: String
+  - 部门: String
+  + 上架出版物(): void
+  + 下架出版物(): void
+  + 修改出版物信息(): void
+  + 注册读者(): void
+  + 查看系统统计(): 统计信息
+  + 处理预约(): void
+  + 管理罚款(): void
+  + 发送通知(): void
+  + 生成报表(): 报表
+}
+
+class 超级管理员 {
+  - 超级管理员ID: String
+  + 系统初始化(): void
+  + 注册管理员(): void
+  + 删除管理员(): void
+  + 配置系统(): void
+  + 备份数据库(): void
+  + 恢复数据库(): void
+}
+
+' 出版物相关类
+abstract class 出版物 {
+  - 出版物ID: String
+  - 标题: String
+  - 作者: String
+  - 出版社: String
+  - 出版日期: Date
+  - 状态: String
+  - 借阅期限: int
+  - 位置: String
+  - 总数量: int
+  - 可借数量: int
+  - 平均评分: double
+  - 评分总数: int
+  + 获取信息(): String
+  + 更新状态(): void
+  + 是否可借(): boolean
+  + 减少可借数量(): void
+  + 增加可借数量(): void
+}
+
+class 书籍 {
+  - ISBN: String
+  - 分类: String
+  - 页数: int
+  - 语言: String
+  - 版本: String
+  - 借阅期限: int = 30
+  + 获取书籍信息(): String
+}
+
+class 期刊 {
+  - ISSN: String
+  - 期号: String
+  - 卷号: String
+  - 借阅期限: int = 7
+  + 获取期刊信息(): String
+}
+
+class 电子书 {
+  - 文件格式: String
+  - 文件大小: long
+  - 下载链接: String
+  - 下载次数: int
+  - 同时在线用户数: int
+  + 下载(): void
+  + 检查可用性(): boolean
+}
+
+' 分类目录类
+class 分类目录 {
+  - 分类ID: String
+  - 分类名称: String
+  - 父分类ID: String
+  - 描述: String
+  + 添加子分类(): void
+  + 获取出版物列表(): List<出版物>
+}
+
+' 借阅记录类
+class 借阅记录 {
+  - 记录ID: String
+  - 读者ID: String
+  - 出版物ID: String
+  - 借阅日期: Date
+  - 应还日期: Date
+  - 归还日期: Date
+  - 状态: String
+  - 续借次数: int
+  - 最大续借次数: int = 2
+  + 计算逾期天数(): int
+  + 是否逾期(): boolean
+  + 续借(): boolean
+  + 能否续借(): boolean
+}
+
+' 预约记录类
+class 预约记录 {
+  - 预约ID: String
+  - 读者ID: String
+  - 出版物ID: String
+  - 预约日期: Date
+  - 过期日期: Date
+  - 状态: String
+  - 优先级: int
+  + 取消(): void
+  + 通知(): void
+  + 是否过期(): boolean
+}
+
+' 罚款记录类
+class 罚款记录 {
+  - 罚款ID: String
+  - 读者ID: String
+  - 借阅记录ID: String
+  - 金额: double
+  - 原因: String
+  - 开具日期: Date
+  - 支付日期: Date
+  - 状态: String
+  + 计算金额(): double
+  + 支付(): boolean
+  + 减免(): void
+}
+
+' 通知类
+class 通知 {
+  - 通知ID: String
+  - 用户ID: String
+  - 类型: String
+  - 标题: String
+  - 内容: String
+  - 发送日期: Date
+  - 是否已读: boolean
+  + 发送(): void
+  + 标记为已读(): void
+}
+
+' 评论评分类
+class 评论 {
+  - 评论ID: String
+  - 读者ID: String
+  - 出版物ID: String
+  - 评分: int
+  - 评论内容: String
+  - 评论日期: Date
+  - 点赞数: int
+  + 编辑(): void
+  + 删除(): void
+}
+
+' 系统统计类
+class 统计信息 {
+  - 出版物总数: int
+  - 读者总数: int
+  - 借阅总数: int
+  - 当前借阅数: int
+  - 逾期数量: int
+  - 罚款总额: double
+  - 热门出版物: List<出版物>
+  + 生成报表(): String
+  + 更新统计(): void
+  + 获取最多借阅图书(): List<出版物>
+  + 获取活跃读者(): List<读者>
+}
+
+' 借阅限制规则类
+class 借阅规则 {
+  - 每人最大借阅数: int = 7
+  - 书籍借阅期限: int = 30
+  - 期刊借阅期限: int = 7
+  - 每日罚款: double = 0.5
+  - 最大续借次数: int = 2
+  + 验证借阅(): boolean
+  + 计算应还日期(): Date
+  + 计算罚款(): double
+}
+
+' 搜索服务类
+class 搜索服务 {
+  - 搜索历史: List<String>
+  + 按标题搜索(标题: String): List<出版物>
+  + 按作者搜索(作者: String): List<出版物>
+  + 按ISBN搜索(isbn: String): 出版物
+  + 按分类搜索(分类: String): List<出版物>
+  + 高级搜索(条件: Map): List<出版物>
+  + 获取推荐(读者ID: String): List<出版物>
+}
+
+' 报表类
+class 报表 {
+  - 报表ID: String
+  - 报表类型: String
+  - 生成日期: Date
+  - 内容: String
+  - 生成人: String
+  + 导出(格式: String): void
+  + 打印(): void
+}
+
+' 继承关系
+用户 <|-- 读者
+用户 <|-- 管理员
+管理员 <|-- 超级管理员
+
+出版物 <|-- 书籍
+出版物 <|-- 期刊
+出版物 <|-- 电子书
+
+' 关联关系 - 用户相关
+读者 "1" -- "0..*" 借阅记录 : 借阅 >
+读者 "1" -- "0..*" 预约记录 : 预约 >
+读者 "1" -- "0..*" 罚款记录 : 产生 >
+读者 "1" -- "0..*" 评论 : 撰写 >
+读者 "1" -- "0..*" 通知 : 接收 >
+
+管理员 "1" -- "0..*" 出版物 : 管理 >
+管理员 "1" -- "0..*" 通知 : 发送 >
+管理员 "1" -- "0..*" 报表 : 生成 >
+
+超级管理员 "1" -- "0..*" 管理员 : 注册管理 >
+超级管理员 "1" -- "0..*" 读者 : 注册管理 >
+
+' 关联关系 - 出版物相关
+出版物 "1" -- "0..*" 借阅记录 : 被借阅 <
+出版物 "1" -- "0..*" 预约记录 : 被预约 <
+出版物 "1" -- "0..*" 评论 : 被评价 <
+出版物 "1" -- "1" 分类目录 : 属于 >
+
+分类目录 "0..1" -- "0..*" 分类目录 : 包含子分类
+
+' 关联关系 - 记录相关
+借阅记录 "1" -- "0..1" 罚款记录 : 产生罚款 >
+借阅记录 "1" -- "0..*" 通知 : 触发通知 >
+
+预约记录 "1" -- "0..*" 通知 : 触发通知 >
+
+' 关联关系 - 规则和统计
+借阅规则 "1" -- "0..*" 借阅记录 : 约束 >
+借阅规则 "1" -- "0..*" 罚款记录 : 计算依据 >
+
+统计信息 "1" -- "0..*" 借阅记录 : 统计 >
+统计信息 "1" -- "0..*" 出版物 : 分析 >
+统计信息 "1" -- "0..*" 读者 : 分析 >
+
+' 关联关系 - 搜索服务
+搜索服务 "1" -- "0..*" 出版物 : 检索 >
+搜索服务 "1" -- "0..*" 分类目录 : 按分类检索 >
+
+' 注释说明
+note right of 读者
+  读者功能：
+  - 借阅/归还图书
+  - 预约图书
+  - 查看借阅历史
+  - 支付罚款
+  - 评价图书
+  - 接收通知
+  
+  借阅限制：
+  - 最多借阅7本
+  - 信用分数影响借阅权限
+end note
+
+note right of 出版物
+  出版物类型：
+  - 书籍（30天借期）
+  - 期刊（7天借期）
+  - 电子书（在线阅读）
+  
+  库存管理：
+  - 总数量
+  - 可借数量
+  - 位置信息
+end note
+
+note bottom of 借阅记录
+  借阅记录包含：
+  - 借阅/归还日期
+  - 续借次数（最多2次）
+  - 逾期状态
+  - 关联罚款
+end note
+
+note top of 罚款记录
+  罚款规则：
+  - 每天0.5元
+  - 自动计算
+  - 支持减免
+end note
+
+note left of 预约记录
+  预约系统：
+  - 优先级队列
+  - 到期自动取消
+  - 到书通知
+end note
+
+note bottom of 搜索服务
+  搜索功能：
+  - 标题/作者/ISBN检索
+  - 分类浏览
+  - 高级搜索
+  - 个性化推荐
+end note
+
+note bottom of 通知
+  通知类型：
+  - 到期提醒
+  - 逾期通知
+  - 预约到书
+  - 系统公告
+end note
+
+note bottom of 超级管理员
+  超级管理员权限：
+  - 系统初始化
+  - 管理员管理
+  - 系统配置
+  - 数据备份/恢复
+end note
+
+@enduml

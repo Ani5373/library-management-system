@@ -1,0 +1,31 @@
+@startuml 借阅
+left to right direction
+
+' 定义状态
+state 初始
+state "借阅中\n(borrowed)" as Borrowed
+state "续借" as Renew
+state "逾期\n(overdue)" as Overdue
+state "已归还\n(returned)" as Returned
+
+' 初始到借阅中
+[*] --> 初始
+初始 --> Borrowed : 借出
+
+' 借阅中 ⇄ 续借
+Borrowed --> Renew : 发起续借
+Renew --> Borrowed : 续借成功
+
+' 续借 → 逾期
+Renew --> Overdue : 超出续借期限
+
+' 借阅中 → 逾期（直接逾期）
+Borrowed --> Overdue : 到期未还
+
+' 逾期 → 已归还
+Overdue --> Returned : 归还
+
+' 已归还为结束状态
+Returned --> [*]
+
+@enduml

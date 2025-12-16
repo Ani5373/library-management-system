@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书馆管理系统</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-box">
+            <h1>📚 图书馆管理系统</h1>
+            <p class="subtitle">Library Management System</p>
+            
+            <div class="button-group">
+                <a href="{{ url_for('login') }}" class="btn btn-primary">登录系统</a>
+            </div>
+            
+            <div class="info-box">
+                <h3>系统功能</h3>
+                <ul>
+                    <li>📖 图书借阅管理</li>
+                    <li>👥 读者信息管理</li>
+                    <li>📊 借阅记录查询</li>
+                    <li>⚙️ 系统管理功能</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

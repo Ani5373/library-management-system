@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员控制台</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h2>📚 管理员控制台</h2>
+        <div class="user-info">
+            <span>欢迎，{{ session.user_name }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-small">退出</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="dashboard">
+            <div class="section">
+                <h3>📖 添加图书</h3>
+                <form method="POST" action="{{ url_for('add_book') }}" class="form-inline">
+                    <input type="text" name="title" placeholder="书名" required>
+                    <input type="text" name="author" placeholder="作者" required>
+                    <input type="text" name="isbn" placeholder="ISBN" required>
+                    <input type="text" name="category" placeholder="分类" required>
+                    <button type="submit" class="btn btn-primary">添加</button>
+                </form>
+            </div>
+            
+            <div class="section">
+                <h3>📚 图书列表</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>作者</th>
+                            <th>分类</th>
+                            <th>状态</th>
+                            <th>借阅者</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pub in publications %}
+                        <tr>
+                            <td>{{ pub.title }}</td>
+                            <td>{{ pub.author if pub.author else '-' }}</td>
+                            <td>{{ pub.category if pub.category else '-' }}</td>
+                            <td>
+                                {% if pub.is_borrowed %}
+                                    <span class="badge badge-danger">已借出</span>
+                                {% else %}
+                                    <span class="badge badge-success">可借</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ pub.borrower.name if pub.borrower else '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h3>👥 读者列表</h3>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>姓名</th>
+                            <th>读者ID</th>
+                            <th>已借数量</th>
+                            <th>剩余额度</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reader in readers %}
+                        <tr>
+                            <td>{{ reader.name }}</td>
+                            <td>{{ reader.reader_id }}</td>
+                            <td>{{ reader.borrowed_items|length }}</td>
+                            <td>{{ reader.get_remaining_quota() }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

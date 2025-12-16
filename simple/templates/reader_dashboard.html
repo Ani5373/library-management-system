@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>读者中心</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <h2>📚 读者中心</h2>
+        <div class="user-info">
+            <span>欢迎，{{ session.user_name }}</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-small">退出</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <div class="dashboard">
+            <div class="stats-box">
+                <div class="stat-item">
+                    <div class="stat-value">{{ reader.borrowed_items|length }}</div>
+                    <div class="stat-label">已借阅</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ reader.get_remaining_quota() }}</div>
+                    <div class="stat-label">剩余额度</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📖 我的借阅</h3>
+                {% if reader.borrowed_items %}
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>书名</th>
+                            <th>应还日期</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reader.borrowed_items %}
+                        <tr>
+                            <td>{{ item.title }}</td>
+                            <td>{{ item.due_date.strftime('%Y-%m-%d') if item.due_date else '-' }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('return_book') }}" style="display:inline;">
+                                    <input type="hidden" name="title" value="{{ item.title }}">
+                                    <button type="submit" class="btn btn-small btn-warning">归还</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="empty-text">暂无借阅记录</p>
+                {% endif %}
+            </div>
+            
+            <div class="section">
+                <h3>📚 可借图书</h3>
+                <div class="book-grid">
+                    {% for pub in publications %}
+                    <div class="book-card">
+                        <div class="book-icon">📚</div>
+                        <h4>{{ pub.title }}</h4>
+                        <p class="book-author">{{ pub.author if pub.author else pub.publisher }}</p>
+                        <form method="POST" action="{{ url_for('borrow_book') }}">
+                            <input type="hidden" name="title" value="{{ pub.title }}">
+                            <button type="submit" class="btn btn-primary btn-block">借阅</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "readers": [
+    {
+      "name": "Ani",
+      "reader_id": "547260",
+      "password": "20040406lihao",
+      "max_borrow_limit": 3
+    }
+  ],
+  "publications": [
+    {
+      "type": "book",
+      "title": "Python编程从入门到实践",
+      "author": "Eric Matthes",
+      "isbn": "9787115428028",
+      "category": "编程"
+    },
+    {
+      "type": "book",
+      "title": "设计模式",
+      "author": "刘溪",
+      "isbn": "9787111075752",
+      "category": "软件工程"
+    },
+    {
+      "type": "book",
+      "title": "数据结构与算法",
+      "author": "作者A",
+      "isbn": "111111",
+      "category": "计算机"
+    },
+    {
+      "type": "magazine",
+      "title": "计算机科学",
+      "issue": "2023-10",
+      "publisher": "科学出版社",
+      "is_latest": true
+    }
+  ]
+}

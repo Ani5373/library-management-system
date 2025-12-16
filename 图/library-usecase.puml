@@ -1,0 +1,53 @@
+@startuml 图书馆管理系统用例图
+left to right direction
+skinparam packageStyle rectangle
+
+actor "读者\n(Reader)" as Reader
+actor "普通管理员\n(Admin)" as Admin
+actor "超级管理员\n(SuperAdmin)" as SuperAdmin
+
+Admin <|-- SuperAdmin
+
+rectangle 图书馆管理系统 {
+  usecase "查询出版物信息" as UC_Query
+  usecase "借阅图书" as UC_Borrow
+  usecase "归还图书" as UC_Return
+  usecase "查看个人借阅记录" as UC_History
+  usecase "检查借阅资格" as UC_Check
+  
+  usecase "上架出版物" as UC_Shelf
+  usecase "下架出版物" as UC_Unshelf
+  usecase "修改出版物信息" as UC_Modify
+  usecase "注册读者" as UC_RegReader
+  usecase "查看系统统计" as UC_Stats
+  
+  usecase "系统初始化" as UC_Init
+  usecase "注册管理员" as UC_RegAdmin
+  
+  usecase "上架书籍" as UC_ShelfBook
+  usecase "上架杂志" as UC_ShelfMag
+  usecase "上架电子书" as UC_ShelfEbook
+}
+
+Reader --> UC_Query
+Reader --> UC_Borrow
+Reader --> UC_Return
+Reader --> UC_History
+Reader --> UC_Check
+
+Admin --> UC_Shelf
+Admin --> UC_Unshelf
+Admin --> UC_Modify
+Admin --> UC_RegReader
+Admin --> UC_Stats
+
+SuperAdmin --> UC_Init
+SuperAdmin --> UC_RegAdmin
+
+UC_Borrow .> UC_Query : <<include>>
+
+UC_ShelfBook --|> UC_Shelf
+UC_ShelfMag --|> UC_Shelf
+UC_ShelfEbook --|> UC_Shelf
+
+@enduml
