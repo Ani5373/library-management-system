@@ -90,7 +90,7 @@ import { Search, Reading, Clock } from '@element-plus/icons-vue'
 import { Database, TABLES } from '@/services/database'
 import { CryptoUtils } from '@/utils/crypto'
 import { useAuthStore } from '@/stores/auth'
-import type { Reader, Publication } from '@/types/models'
+import type { Reader, Publication, BorrowRecord } from '@/types/models'
 
 const authStore = useAuthStore()
 const readerInfo = ref<Reader | null>(null)
@@ -121,8 +121,62 @@ const loadRecommendedBooks = () => {
     .slice(0, 6)
 }
 
-const handleBorrow = (book: Publication) => {
-  ElMessage.info('请联系管理员办理借阅')
+const handleBorrow = async (book: Publication) => {
+  if (!readerInfo.value) {
+    ElMessage.error('请先登录')
+    return
+  }
+  
+  // 检查借阅资格
+  if (readerInfo.value.borrowedCount >= readerInfo.value.borrowLimit) {
+    ElMessage.error('已达借阅上限')
+    return
+  }
+  
+  if (readerInfo.value.creditScore < 60) {
+    ElMessage.error('信用分数不足，无法借阅')
+    return
+  }
+  
+  if (readerInfo.value.totalFines > 50) {
+    ElMessage.error('未支付罚款超过限额，请先支付罚款')
+    return
+  }
+  
+  // 创建借阅记录
+  const recordId = CryptoUtils.generateId('borrow')
+  const borrowDate = new Date()
+  const dueDate = new Date(borrowDate.getTime() + book.borrowPeriod * 24 * 60 * 60 * 1000)
+  
+  const record = {
+    recordId,
+    readerId: readerInfo.value.readerId,
+    publicationId: book.publicationId,
+    borrowDate: borrowDate.toISOString(),
+    dueDate: dueDate.toISOString(),
+    returnDate: null,
+    status: 'borrowed',
+    renewalCount: 0,
+    maxRenewals: 2
+  }
+  
+  Database.insert(TABLES.BORROW_RECORDS, record)
+  
+  // 减少可借数量
+  Database.update(TABLES.PUBLICATIONS, 'publicationId', book.publicationId, {
+    availableCopies: book.availableCopies - 1
+  })
+  
+  // 增加读者借阅数量
+  Database.update(TABLES.READERS, 'readerId', readerInfo.value.readerId, {
+    borrowedCount: readerInfo.value.borrowedCount + 1
+  })
+  
+  ElMessage.success(`借阅成功！应还日期：${new Date(dueDate).toLocaleDateString('zh-CN')}`)
+  
+  // 刷新数据
+  loadReaderInfo()
+  loadRecommendedBooks()
 }
 
 const handleReserve = (book: Publication) => {

@@ -158,13 +158,97 @@ const getStatusText = (record: BorrowRecord) => {
 }
 
 const handleRenew = (record: BorrowRecord) => {
-  ElMessage.info('续借功能正在开发中...')
-  // TODO: 实现续借逻辑
+  if (record.renewalCount >= record.maxRenewals) {
+    ElMessage.error('已达最大续借次数')
+    return
+  }
+
+  if (record.status !== 'borrowed') {
+    ElMessage.error('只能续借未归还的出版物')
+    return
+  }
+
+  // 获取出版物信息
+  const publication = publications.value.find(p => p.publicationId === record.publicationId)
+  if (!publication) {
+    ElMessage.error('出版物不存在')
+    return
+  }
+
+  // 延长应还日期
+  const currentDueDate = new Date(record.dueDate)
+  const newDueDate = new Date(currentDueDate.getTime() + publication.borrowPeriod * 24 * 60 * 60 * 1000)
+
+  Database.update<BorrowRecord>(TABLES.BORROW_RECORDS, 'recordId', record.recordId, {
+    dueDate: newDueDate.toISOString(),
+    renewalCount: record.renewalCount + 1
+  })
+
+  ElMessage.success(`续借成功！新的应还日期：${newDueDate.toLocaleDateString('zh-CN')}`)
+  
+  // 刷新数据
+  loadBorrowRecords()
 }
 
 const handleReturn = (record: BorrowRecord) => {
-  ElMessage.info('归还功能正在开发中...')
-  // TODO: 实现归还逻辑
+  if (record.status === 'returned') {
+    ElMessage.error('该图书已归还')
+    return
+  }
+
+  const returnDate = new Date()
+  const dueDate = new Date(record.dueDate)
+  const overdueDays = Math.max(0, Math.floor((returnDate.getTime() - dueDate.getTime()) / (24 * 60 * 60 * 1000)))
+
+  // 更新借阅记录
+  Database.update<BorrowRecord>(TABLES.BORROW_RECORDS, 'recordId', record.recordId, {
+    returnDate: returnDate.toISOString(),
+    status: overdueDays > 0 ? 'overdue' : 'returned'
+  })
+
+  // 增加可借数量
+  const publication = publications.value.find(p => p.publicationId === record.publicationId)
+  if (publication) {
+    Database.update(TABLES.PUBLICATIONS, 'publicationId', record.publicationId, {
+      availableCopies: publication.availableCopies + 1
+    })
+  }
+
+  // 减少读者借阅数量并更新信用分数
+  const readers = Database.query<Reader>(
+    TABLES.READERS,
+    r => r.userId === authStore.user?.userId
+  )
+  
+  if (readers.length > 0) {
+    const reader = readers[0]
+    Database.update(TABLES.READERS, 'readerId', reader.readerId, {
+      borrowedCount: Math.max(0, reader.borrowedCount - 1)
+    })
+
+    // 更新信用分数
+    if (overdueDays === 0) {
+      // 按时归还，增加信用分数
+      Database.update(TABLES.READERS, 'readerId', reader.readerId, {
+        creditScore: Math.min(200, reader.creditScore + 2)
+      })
+    } else {
+      // 逾期归还，减少信用分数
+      Database.update(TABLES.READERS, 'readerId', reader.readerId, {
+        creditScore: Math.max(0, reader.creditScore - overdueDays * 2)
+      })
+    }
+  }
+
+  if (overdueDays > 0) {
+    ElMessage.warning(`归还成功，但已逾期 ${overdueDays} 天，信用分数已扣除`)
+  } else {
+    ElMessage.success('归还成功！信用分数已增加')
+  }
+  
+  // 刷新数据
+  loadBorrowRecords()
+  loadPublications()
 }
 </script>
 
